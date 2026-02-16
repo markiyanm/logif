@@ -4,8 +4,7 @@
 	import AppSidebar from "$lib/components/layout/app-sidebar.svelte";
 	import type { NavGroup } from "$lib/components/layout/nav-config.js";
 	import { Button } from "$lib/components/ui/button/index.js";
-	import { toggleMode } from "mode-watcher";
-	import { mode } from "mode-watcher/states.svelte";
+	import { toggleMode, mode } from "mode-watcher";
 	import {
 		LayoutDashboard,
 		CreditCard,
