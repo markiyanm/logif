@@ -6,6 +6,9 @@ let posthogInitialized = false;
 export function initPostHog(key: string, host: string) {
 	if (!browser || posthogInitialized || !key) return;
 
+	// Skip PostHog in development to avoid ad-blocker console noise
+	if (import.meta.env.DEV) return;
+
 	posthog.init(key, {
 		api_host: host,
 		capture_pageview: false, // we handle this manually on SPA navigation
