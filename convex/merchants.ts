@@ -84,7 +84,21 @@ export const getMyMerchant = query({
 		v.null(),
 	),
 	handler: async (ctx) => {
-		const { user } = await withAuth(ctx);
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			return null;
+		}
+
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_tokenIdentifier", (q) =>
+				q.eq("tokenIdentifier", identity.tokenIdentifier),
+			)
+			.unique();
+
+		if (!user) {
+			return null;
+		}
 
 		const membership = await ctx.db
 			.query("merchantMembers")
