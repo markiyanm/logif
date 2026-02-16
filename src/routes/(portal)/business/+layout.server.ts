@@ -21,5 +21,8 @@ export const load: LayoutServerLoad = async ({ parent }) => {
 		throw redirect(302, "/login");
 	}
 
+	// Ensure the user has a merchant (auto-provisions if needed)
+	await convex.mutation(api.merchants.ensureMyMerchant);
+
 	return { convexUser };
 };

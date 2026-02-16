@@ -5,6 +5,7 @@ import {
 	conflict,
 	forbidden,
 	notFound,
+	unauthorized,
 	validationError,
 } from "./lib/errors.js";
 import {
@@ -110,6 +111,88 @@ export const getMyMerchant = query({
 		}
 
 		return await ctx.db.get(membership.merchantId);
+	},
+});
+
+// ─── Ensure My Merchant (auto-provision) ──────────────────────────
+
+export const ensureMyMerchant = mutation({
+	args: {},
+	returns: v.id("merchants"),
+	handler: async (ctx) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			unauthorized();
+		}
+
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_tokenIdentifier", (q) =>
+				q.eq("tokenIdentifier", identity.tokenIdentifier),
+			)
+			.unique();
+
+		if (!user) {
+			unauthorized("User account not found.");
+		}
+
+		// Check existing membership first
+		const membership = await ctx.db
+			.query("merchantMembers")
+			.withIndex("by_userId", (q) => q.eq("userId", user._id))
+			.first();
+
+		if (membership) {
+			return membership.merchantId;
+		}
+
+		// Check if user owns a merchant (no membership row yet)
+		const ownedMerchant = await ctx.db
+			.query("merchants")
+			.withIndex("by_ownerUserId", (q) => q.eq("ownerUserId", user._id))
+			.first();
+
+		if (ownedMerchant) {
+			// Create missing membership
+			await ctx.db.insert("merchantMembers", {
+				merchantId: ownedMerchant._id,
+				userId: user._id,
+				role: "owner",
+			});
+			return ownedMerchant._id;
+		}
+
+		// Auto-provision a new merchant
+		const slug = user.email.split("@")[0].toLowerCase().replace(/[^a-z0-9-]/g, "-");
+
+		// Ensure slug uniqueness
+		let finalSlug = slug;
+		let counter = 1;
+		while (
+			await ctx.db
+				.query("merchants")
+				.withIndex("by_slug", (q) => q.eq("slug", finalSlug))
+				.unique()
+		) {
+			finalSlug = `${slug}-${counter}`;
+			counter++;
+		}
+
+		const merchantId = await ctx.db.insert("merchants", {
+			name: user.name || "My Business",
+			slug: finalSlug,
+			ownerUserId: user._id,
+			status: "active",
+			contactEmail: user.email,
+		});
+
+		await ctx.db.insert("merchantMembers", {
+			merchantId,
+			userId: user._id,
+			role: "owner",
+		});
+
+		return merchantId;
 	},
 });
 
