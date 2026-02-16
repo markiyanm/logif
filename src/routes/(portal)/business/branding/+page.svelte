@@ -49,10 +49,19 @@
 		}
 		saving = true;
 		try {
+			const nextTheme = cleanTheme(theme);
 			await client.mutation(api.merchants.updateBranding, {
 				merchantId,
-				theme: cleanTheme(theme),
+				theme: nextTheme,
 			});
+			const refreshedMerchant = await client.query(api.merchants.getById, {
+				merchantId,
+			});
+			if (refreshedMerchant?.theme) {
+				theme = { ...refreshedMerchant.theme };
+			} else {
+				theme = {};
+			}
 			toast.success("Theme saved successfully");
 		} catch (err) {
 			toast.error("Failed to save theme");

@@ -2,9 +2,12 @@
 	import { page } from "$app/state";
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 	import AppSidebar from "$lib/components/layout/app-sidebar.svelte";
+	import ThemeProvider from "$lib/components/branding/theme-provider.svelte";
 	import type { NavGroup } from "$lib/components/layout/nav-config.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { toggleMode, mode } from "mode-watcher";
+	import { useQuery } from "convex-svelte";
+	import { api } from "$convex/_generated/api.js";
 	import {
 		LayoutDashboard,
 		CreditCard,
@@ -25,6 +28,25 @@
 	} from "lucide-svelte";
 
 	let { children, data } = $props();
+	const merchant = useQuery(api.merchants.getMyMerchant, () => ({}));
+
+	const portalBrandTheme = $derived.by(() => {
+		const theme = merchant.data?.theme;
+		if (!theme) return null;
+		return {
+			primary: theme.primary,
+			primaryForeground: theme.primaryForeground,
+			secondary: theme.secondary,
+			secondaryForeground: theme.secondaryForeground,
+			accent: theme.accent,
+			accentForeground: theme.accentForeground,
+			destructive: theme.destructive,
+			border: theme.border,
+			input: theme.input,
+			ring: theme.ring,
+			radius: theme.radius,
+		};
+	});
 
 	const adminNav: NavGroup[] = [
 		{
@@ -114,20 +136,24 @@
 	});
 </script>
 
-<Sidebar.SidebarProvider>
-	<AppSidebar {navGroups} user={data.user} />
-	<Sidebar.SidebarInset>
-		<header class="flex h-12 shrink-0 items-center justify-between border-b px-4">
-			<Sidebar.SidebarTrigger />
-			<Button variant="ghost" size="icon" onclick={toggleMode}>
-				{#if mode.current === "light"}
-					<Moon class="size-4" />
-				{:else}
-					<Sun class="size-4" />
-				{/if}
-				<span class="sr-only">Toggle dark mode</span>
-			</Button>
-		</header>
-		{@render children()}
-	</Sidebar.SidebarInset>
-</Sidebar.SidebarProvider>
+<ThemeProvider theme={portalBrandTheme}>
+	<div class="bg-background text-foreground min-h-screen">
+		<Sidebar.SidebarProvider>
+			<AppSidebar {navGroups} user={data.user} />
+			<Sidebar.SidebarInset>
+				<header class="flex h-12 shrink-0 items-center justify-between border-b px-4">
+					<Sidebar.SidebarTrigger />
+					<Button variant="ghost" size="icon" onclick={toggleMode}>
+						{#if mode.current === "light"}
+							<Moon class="size-4" />
+						{:else}
+							<Sun class="size-4" />
+						{/if}
+						<span class="sr-only">Toggle dark mode</span>
+					</Button>
+				</header>
+				{@render children()}
+			</Sidebar.SidebarInset>
+		</Sidebar.SidebarProvider>
+	</div>
+</ThemeProvider>
