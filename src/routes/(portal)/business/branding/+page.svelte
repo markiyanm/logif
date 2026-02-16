@@ -30,13 +30,28 @@
 		}
 	});
 
+	function cleanTheme(
+		raw: Record<string, string | undefined>,
+	): Record<string, string> {
+		const cleaned: Record<string, string> = {};
+		for (const [key, value] of Object.entries(raw)) {
+			if (value !== undefined && value !== "") {
+				cleaned[key] = value;
+			}
+		}
+		return cleaned;
+	}
+
 	async function saveTheme() {
-		if (!merchantId) return;
+		if (!merchantId) {
+			toast.error("No merchant found. Please reload the page.");
+			return;
+		}
 		saving = true;
 		try {
 			await client.mutation(api.merchants.updateBranding, {
 				merchantId,
-				theme,
+				theme: cleanTheme(theme),
 			});
 			toast.success("Theme saved successfully");
 		} catch (err) {
@@ -48,7 +63,10 @@
 	}
 
 	async function handleLogoUploaded(storageId: string) {
-		if (!merchantId) return;
+		if (!merchantId) {
+			toast.error("No merchant found. Please reload the page.");
+			return;
+		}
 		try {
 			await client.mutation(api.merchants.updateBranding, {
 				merchantId,
