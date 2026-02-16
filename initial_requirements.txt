@@ -1,0 +1,34 @@
+# Overview
+Building a gift and loyalty platform. This will be an API first platform that will have a portal for merchants to manage their program and third party party APIs for developers. We need to focus on best practices for API design, API documentations, proper controls for access control (like developer keys, merchant keys, perimissions for creating new cards, redeems, loads, etc).
+
+# Tech Requirements
+- REST API with proper, friendlt documentation and test/integration tools
+- Database/Backend - Convex - https://convex.link/convex_rules.txt
+- Webapp - SvelteKit - https://svelte.dev/docs/mcp/overview/llms.txt
+- Styling - ShadCN for Svelte - https://www.shadcn-svelte.com/llms.txt
+- Auth - WorkOS - https://workos.com/docs/api/markdown/authkit/mcp
+- Email - Resend - https://resend.com/docs/
+- Hosting - Vercel - planning on using Vercel like I have before but interested in recommendations.
+- Logging/Metrics - PostHog - if we need this lets use it or use Convex if that will work. I want some basic data on metrics/volumes/traffic/logging
+
+# Features
+- Robust API layer for internal and external users
+-- internal
+--- ability to create merchants, developers, princing, access, billing, reporting, admin users, etc
+--- external
+---- developers - API suite and docs to manage merchants under their own hierarchy, transaction processing like gift loading/redeeming, points management, etc.
+---- merchants - a portal to view and manage cards, customers, view reports/history/bills
+---- custmers - a portal for end users to check balances and transaction history (for different merchants/stores)
+- Functionality
+-- card swiping (track data), QR codes, email gift card to customers (from merchant portal or developer API)
+-- the portals should be brandable for the merchant and partners
+-- Portals details - I want ONE portals and the functionality will be based on the role so they can access different pages, functions and data/reports
+--- Admin portal role (for me, the developer)
+--- Partner portal role - for API developers to manage their integration and merchants
+--- Business portal role - for merchants to manage their program, customers and cards. They should be able to create new gift cards (single or bulk) or import gift cards and balances from other providers. I want the portal to be brandable (using shadcn themes from something like https://tweakcn.com/) and they should be able to upload their own logos.
+--- Customer portal role - to check balances and see transaction history. would be nice to have unique URL (either subdomain or directory) - I don't want to do any custom/manual setupts though so we should be able to manage/update these as a merchant profile setting
+
+#  Future features: 
+- load funds onto gift card from credit cards
+- gift card art designer
+- load to apple or google wallet feature
